@@ -1,8 +1,14 @@
 import { keys } from "./keys.js";
 const AllAudioNames = [];
+const audioFiles = {};
 const pianoKeysContainer = document.querySelector(".piano-keys");
+const volumeInput = document.querySelector(".volume-slider input");
+const checkboxInput = document.querySelector(".labels-checkbox  input");
 document.addEventListener("DOMContentLoaded", () => {
   keys.forEach((key) => createPianoKey(key));
+  preloadAudio();
+
+  document.addEventListener("keydown", handleKeyPress);
 });
 const createPianoKey = (key) => {
   const { note, keyboard, isBlack, specialKey } = key;
@@ -12,11 +18,43 @@ const createPianoKey = (key) => {
   li.dataset.audioName = audioName;
 
   li.innerHTML = `
-<div>${note} <div>
-<span>${keyboard}<span>
+<div>${note} </div>
+<span>${keyboard}</span>
 
 `;
 
+  li.addEventListener("click", () => playAudio(audioName));
   pianoKeysContainer.appendChild(li);
   AllAudioNames.push(audioName);
+};
+const preloadAudio = () => {
+  AllAudioNames.forEach((audioName) => {
+    audioFiles[audioName] = new Audio(`./audios/${audioName}.mp3`);
+  });
+};
+
+const handleKeyPress = (e) => {
+  const pressedKey = keys.find(({ keyboard }) => keyboard === e.key);
+  const audioName = pressedKey?.specialKey || e.key;
+  playAudio(audioName);
+};
+const playAudio = (audioName) => {
+  const audio = audioFiles[audioName];
+  if (!audio) return;
+  audio.volume = volumeInput.value;
+  audio.currenTime = 0;
+  audio.play();
+  const activeKey = document.querySelector(`[data-audio-name=${audioName}]`);
+  activeKey.classList.add("active");
+
+  setTimeout(() => {
+    activeKey.classList.remove("active");
+  }, 150);
+};
+const toggleKeyLabels = () => {
+  const allKeys = document.querySelector(".key");
+
+  allKeys.forEach((keyElement) => {
+    keyElement.classList.toggle("hide");
+  });
 };
